@@ -6,9 +6,7 @@ import org.slf4j.LoggerFactory.getLogger
 /**
  *
  */
-interface Event {
-    val name: String? get() = this::class.simpleName
-}
+interface Event : DescName
 
 /**
  *
@@ -21,7 +19,7 @@ interface EventBus {
  *
  */
 @Suppress("AddVarianceModifier")
-interface EventHandler<E : Event> : Handler {
+interface EventHandler<E : Event> : DescName {
     fun handle(event: E): Unit
 }
 

@@ -6,9 +6,7 @@ import org.slf4j.LoggerFactory.getLogger
 /**
  * Query to dispatch
  */
-interface Query {
-    val name: String? get() = this::class.simpleName
-}
+interface Query : DescName
 
 /**
  *
@@ -22,7 +20,7 @@ interface QueryBus {
  *
  */
 @Suppress("AddVarianceModifier")
-interface QueryHandler<Q : Query, out R> : Handler {
+interface QueryHandler<Q : Query, out R> : DescName {
     fun handle(query: Q): R
 }
 

@@ -5,9 +5,7 @@ import org.slf4j.LoggerFactory.getLogger
 /**
  * Command to dispatch
  */
-interface Command {
-    val name: String? get() = this::class.simpleName
-}
+interface Command : DescName
 
 /**
  *
@@ -21,7 +19,7 @@ interface CommandBus {
  *
  */
 @Suppress("AddVarianceModifier")
-interface CommandHandler<C : Command, out R> : Handler {
+interface CommandHandler<C : Command, out R> : DescName {
     fun handle(command: C): R
 }
 
