@@ -14,7 +14,7 @@ interface Cqrs {
     fun event(event: Event)
 }
 
-interface Handler {
+interface DescName {
     val name: String? get() = this::class.simpleName
 }
 
@@ -29,12 +29,26 @@ class CqrsImpl(
 
     override fun command(command: Command) {
         log.debug("dispatch command > ${command.name}")
+
+        if (command is PreActionMiddleware)
+            middlewareBus.dispatch(command)
+
         commandBus.dispatch(command)
+
+        if (command is PostActionMiddleware)
+            middlewareBus.dispatch(command)
     }
 
     override fun query(query: Query) {
         log.debug("dispatch query > ${query.name}")
+
+        if (query is PreActionMiddleware)
+            middlewareBus.dispatch(query)
+
         queryBus.dispatch(query)
+
+        if (query is PostActionMiddleware)
+            middlewareBus.dispatch(query)
     }
 
     override fun event(event: Event) {
