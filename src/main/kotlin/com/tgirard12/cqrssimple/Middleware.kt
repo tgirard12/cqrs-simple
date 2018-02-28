@@ -2,13 +2,20 @@ package com.tgirard12.cqrssimple
 
 import org.slf4j.LoggerFactory.getLogger
 
+/**
+ *
+ */
+interface Middleware : DescName
 
 /**
  *
  */
-interface Middleware {
-    val name: String? get() = this::class.simpleName
-}
+interface PreActionMiddleware : Middleware
+
+/**
+ *
+ */
+interface PostActionMiddleware : Middleware
 
 /**
  *
@@ -21,7 +28,7 @@ interface MiddlewareBus {
  *
  */
 @Suppress("AddVarianceModifier")
-interface MiddlewareHandler<M : Middleware> : Handler {
+interface MiddlewareHandler<M : Middleware> : DescName {
     fun handle(middleware: M): Unit
 }
 
