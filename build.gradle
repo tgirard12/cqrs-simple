@@ -9,18 +9,19 @@ buildscript {
     }
 }
 
-group 'com.tgirard12'
-version '0.1.0'
+group = project_group
+version = project_version
 
 apply plugin: 'kotlin'
 apply plugin: 'java-library'
 
-repositories {
-    jcenter()
-}
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
+
+repositories {
+    jcenter()
 }
 
 compileKotlin {
