@@ -46,11 +46,13 @@ class MiddlewareBusStub : MiddlewareBus, MockStub {
 
     override val mockFun: MutableList<String> = mutableListOf()
     override val mockData: MutableList<Any> = mutableListOf()
+    override val mockTime: MutableList<Long> = mutableListOf()
 
     var _dispatch = { Unit }
     override fun dispatch(middleware: Middleware) {
         mockFun.add("dispatch")
         mockData.add(listOf(middleware))
+        mockTime.add(System.nanoTime())
         return _dispatch()
     }
 }

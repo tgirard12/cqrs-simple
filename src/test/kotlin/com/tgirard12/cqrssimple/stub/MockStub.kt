@@ -4,4 +4,5 @@ interface MockStub {
 
     val mockFun: MutableList<String>
     val mockData: MutableList<Any>
+    val mockTime: MutableList<Long>
 }
