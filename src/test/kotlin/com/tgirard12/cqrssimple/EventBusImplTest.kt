@@ -2,8 +2,8 @@ package com.tgirard12.cqrssimple
 
 import com.tgirard12.cqrssimple.stub.*
 import io.kotlintest.KTestJUnitRunner
+import io.kotlintest.TestCaseContext
 import io.kotlintest.matchers.shouldEqual
-import io.kotlintest.matchers.shouldThrow
 import io.kotlintest.specs.WordSpec
 import org.junit.runner.RunWith
 
@@ -22,6 +22,11 @@ class EventBusImplTest : WordSpec() {
 
     override val oneInstancePerTest: Boolean = true
 
+    override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
+        EventCount.reset()
+        test()
+    }
+
     init {
         "QueryBusImplTest" should {
             "handlers map" {
@@ -33,20 +38,27 @@ class EventBusImplTest : WordSpec() {
             }
             "dispatch AEvent" {
                 eventBus.dispatch(AEvent())
-                EventCount.aCount shouldEqual 1
+                EventCount.aCount shouldEqual "a1"
+                EventCount.bCount shouldEqual "b"
+                EventCount.cCount shouldEqual "c"
+                EventCount.dCount shouldEqual "d"
             }
             "dispatch BEvent" {
                 eventBus.dispatch(BEvent())
-                EventCount.bCount shouldEqual 101
+                EventCount.aCount shouldEqual "a"
+                EventCount.bCount shouldEqual "b2"
+                EventCount.cCount shouldEqual "c"
+                EventCount.dCount shouldEqual "d"
             }
             "dispatch CEvent -> 2 events" {
                 eventBus.dispatch(CEvent())
-                EventCount.cCount shouldEqual 1011
+                EventCount.aCount shouldEqual "a"
+                EventCount.bCount shouldEqual "b"
+                EventCount.cCount shouldEqual "c34"
+                EventCount.dCount shouldEqual "d"
             }
-            "fail no EventHandler" {
-                shouldThrow<IllegalArgumentException> {
-                    eventBus.dispatch(DEvent())
-                }
+            "nothing on no EventHandler" {
+                eventBus.dispatch(DEvent())
             }
         }
     }
