@@ -34,6 +34,10 @@ class CqrsImplTest : WordSpec() {
                 commandBus.mockFun shouldEqual listOf<String>()
                 eventBus.mockFun shouldEqual listOf<String>()
             }
+            "return query result" {
+                queryBus._dispatch = { "queryResult" }
+                cqrs.query(AQuery()) shouldEqual "queryResult"
+            }
             "dispatch command" {
                 val command = ACommand()
                 cqrs.command(command)
@@ -43,6 +47,10 @@ class CqrsImplTest : WordSpec() {
 
                 queryBus.mockFun shouldEqual listOf<String>()
                 eventBus.mockFun shouldEqual listOf<String>()
+            }
+            "return command result" {
+                commandBus._dispatch = { "commandResult" }
+                cqrs.command(ACommand()) shouldEqual "commandResult"
             }
             "dispatch event" {
                 val event = AEvent()

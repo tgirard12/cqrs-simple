@@ -24,7 +24,7 @@ class QueryBusStub : QueryBus, MockStub {
     override val mockData: MutableList<Any> = mutableListOf()
     override val mockTime: MutableList<Long> = mutableListOf()
 
-    var _dispatch = { null }
+    var _dispatch: () -> Any? = { null }
     override fun dispatch(query: Query): Any? {
         mockFun.add("dispatch")
         mockData.add(listOf(query))

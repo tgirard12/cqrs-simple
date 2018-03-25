@@ -25,7 +25,7 @@ class CommandBusStub : CommandBus, MockStub {
     override val mockData: MutableList<Any> = mutableListOf()
     override val mockTime: MutableList<Long> = mutableListOf()
 
-    var _dispatch = { null }
+    var _dispatch: () -> Any? = { null }
     override fun dispatch(command: Command): Any? {
         mockFun.add("dispatch")
         mockData.add(listOf(command))

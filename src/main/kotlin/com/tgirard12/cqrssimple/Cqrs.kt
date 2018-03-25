@@ -9,8 +9,8 @@ interface Cqrs {
     val eventBus: EventBus
     val middlewareBus: MiddlewareBus
 
-    fun command(command: Command)
-    fun query(query: Query)
+    fun command(command: Command): Any?
+    fun query(query: Query): Any?
     fun event(event: Event)
 }
 
@@ -27,28 +27,33 @@ class CqrsImpl(
 
     val log = getLogger("cqrs")
 
-    override fun command(command: Command) {
+    override fun command(command: Command): Any? {
         log.debug("dispatch command > ${command.name}")
 
         if (command is PreActionMiddleware)
             middlewareBus.dispatch(command)
 
-        commandBus.dispatch(command)
+        val comVal = commandBus.dispatch(command)
 
         if (command is PostActionMiddleware)
             middlewareBus.dispatch(command)
+
+        return comVal
     }
 
-    override fun query(query: Query) {
+    override fun query(query: Query): Any? {
         log.debug("dispatch query > ${query.name}")
 
         if (query is PreActionMiddleware)
             middlewareBus.dispatch(query)
 
-        queryBus.dispatch(query)
+        val comVal = queryBus.dispatch(query)
 
         if (query is PostActionMiddleware)
             middlewareBus.dispatch(query)
+
+        return comVal
+
     }
 
     override fun event(event: Event) {
