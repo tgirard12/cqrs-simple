@@ -17,7 +17,7 @@ class QueryBusImplTest : WordSpec() {
             BQueryHandler(),
             cQueryHandler
     )
-    private val queryBus = QueryBusImpl(handlers as List<QueryHandler<Query, Any>>)
+    private val queryBus = QueryBusImpl(handlers as List<QueryHandler<Query<Any>, Any>>)
 
     override val oneInstancePerTest: Boolean = true
 

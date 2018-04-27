@@ -10,7 +10,7 @@ interface Cqrs {
     val middlewareBus: MiddlewareBus
 
     fun command(command: Command): Any?
-    fun query(query: Query): Any?
+    fun <R> query(query: Query<R>): R?
     fun event(event: Event)
 }
 
@@ -41,7 +41,7 @@ class CqrsImpl(
         return comVal
     }
 
-    override fun query(query: Query): Any? {
+    override fun <R> query(query: Query<R>): R {
         log.debug("dispatch query > ${query.name}")
 
         if (query is PreActionMiddleware)
@@ -53,7 +53,6 @@ class CqrsImpl(
             middlewareBus.dispatch(query)
 
         return comVal
-
     }
 
     override fun event(event: Event) {
