@@ -17,7 +17,7 @@ class CommandBusImplTest : WordSpec() {
             BCommandHandler(),
             cCommandHandler
     )
-    private val commandBus = CommandBusImpl(handlers as List<CommandHandler<Command, Any>>)
+    private val commandBus = CommandBusImpl(handlers as List<CommandHandler<Command<Any>, Any>>)
 
     override val oneInstancePerTest: Boolean = true
 

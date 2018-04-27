@@ -3,12 +3,12 @@ package com.tgirard12.cqrssimple.stub
 import com.tgirard12.cqrssimple.*
 
 
-class ACommand : Command, PreActionMiddleware
-class BCommand : Command, PreActionMiddleware
-class CCommand : Command, PostActionMiddleware
-class DCommand : Command, PostActionMiddleware
+class ACommand : Command<String>, PreActionMiddleware
+class BCommand : Command<Int>, PreActionMiddleware
+class CCommand : Command<String>, PostActionMiddleware
+class DCommand : Command<String>, PostActionMiddleware
 
-class ACCommand : Command, PreActionMiddleware, PostActionMiddleware
+class ACCommand : Command<String>, PreActionMiddleware, PostActionMiddleware
 
 class ACommandHandler : CommandHandlerBase<ACommand, String>() {
     override fun handle(command: ACommand): String = "ACommandHandler"
@@ -26,10 +26,11 @@ class CommandBusStub : CommandBus, MockStub {
     override val mockTime: MutableList<Long> = mutableListOf()
 
     var _dispatch: () -> Any? = { null }
-    override fun dispatch(command: Command): Any? {
+    @Suppress("UNCHECKED_CAST")
+    override fun <R> dispatch(command: Command<R>): R {
         mockFun.add("dispatch")
         mockData.add(listOf(command))
         mockTime.add(System.nanoTime())
-        return _dispatch()
+        return _dispatch() as R
     }
 }

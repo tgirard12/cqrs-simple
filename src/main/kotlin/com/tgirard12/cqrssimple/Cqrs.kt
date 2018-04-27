@@ -9,7 +9,7 @@ interface Cqrs {
     val eventBus: EventBus
     val middlewareBus: MiddlewareBus
 
-    fun command(command: Command): Any?
+    fun <R> command(command: Command<R>): Any?
     fun <R> query(query: Query<R>): R?
     fun event(event: Event)
 }
@@ -27,7 +27,7 @@ class CqrsImpl(
 
     val log = getLogger("cqrs")
 
-    override fun command(command: Command): Any? {
+    override fun <R> command(command: Command<R>): R {
         log.debug("dispatch command > ${command.name}")
 
         if (command is PreActionMiddleware)

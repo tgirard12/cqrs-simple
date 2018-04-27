@@ -5,28 +5,29 @@ import org.slf4j.LoggerFactory.getLogger
 /**
  * Command to dispatch
  */
-interface Command : DescName
+@Suppress("unused")
+interface Command<R> : DescName
 
 /**
  *
  */
 interface CommandBus {
 
-    fun dispatch(command: Command): Any?
+    fun <R> dispatch(command: Command<R>): R
 }
 
 /**
  *
  */
 @Suppress("AddVarianceModifier")
-interface CommandHandler<C : Command, out R> : DescName {
+interface CommandHandler<C : Command<R>, R> : DescName {
     fun handle(command: C): R
 }
 
 /**
  *
  */
-open class CommandHandlerBase<C : Command, out R>(
+open class CommandHandlerBase<C : Command<R>, R>(
         private val handleFun: ((C) -> R)? = null
 ) : CommandHandler<C, R> {
 
@@ -38,23 +39,24 @@ open class CommandHandlerBase<C : Command, out R>(
  *
  */
 class CommandBusImpl(
-        handlerList: List<CommandHandler<Command, Any>>
+        handlerList: List<CommandHandler<Command<Any>, Any>>
 ) : CommandBus {
 
-    val log = getLogger("CommandBus")
+    private val log = getLogger("CommandBus")
 
     internal val handlers = handlerList.map {
         it.javaClass.kotlin.supertypes[0].arguments[0].type.toString() to it
     }.toMap()
 
-    override fun dispatch(command: Command): Any? {
+    @Suppress("UNCHECKED_CAST")
+    override fun <R> dispatch(command: Command<R>): R {
         val queryClass = command::class.qualifiedName
                 ?: throw  IllegalArgumentException("Command ${command::class} ::class.qualifiedName NULL")
         val handler = handlers[queryClass]
                 ?: throw  IllegalArgumentException("CommandHandler ${command::class} NULL")
 
         log.debug("${handler.name} > ${command.name}")
-        return handler.handle(command)
+        return handler.handle(command as Command<Any>) as R
     }
 }
 
