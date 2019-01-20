@@ -1,43 +1,41 @@
 package com.tgirard12.cqrssimple
 
 import com.tgirard12.cqrssimple.stub.*
-import io.kotlintest.KTestJUnitRunner
-import io.kotlintest.matchers.shouldEqual
-import io.kotlintest.matchers.shouldThrow
+import io.kotlintest.shouldBe
+import io.kotlintest.shouldThrow
 import io.kotlintest.specs.WordSpec
-import org.junit.runner.RunWith
 
 
-@Suppress("UNCHECKED_CAST")
-@RunWith(KTestJUnitRunner::class)
 class CommandBusImplTest : WordSpec() {
 
     private val handlers = listOf(
-            ACommandHandler(),
-            BCommandHandler(),
-            cCommandHandler
+        ACommandHandler(),
+        BCommandHandler(),
+        cCommandHandler
     )
+
+    @Suppress("UNCHECKED_CAST")
     private val commandBus = CommandBusImpl(handlers as List<CommandHandler<Command<Any>, Any>>)
 
-    override val oneInstancePerTest: Boolean = true
+    override fun isInstancePerTest() = true
 
     init {
         "CommandBusImplTest" should {
             "handlers map" {
-                commandBus.handlers shouldEqual hashMapOf(
-                        "com.tgirard12.cqrssimple.stub.ACommand" to handlers[0],
-                        "com.tgirard12.cqrssimple.stub.BCommand" to handlers[1],
-                        "com.tgirard12.cqrssimple.stub.CCommand" to handlers[2]
+                commandBus.handlers shouldBe hashMapOf(
+                    "com.tgirard12.cqrssimple.stub.ACommand" to handlers[0],
+                    "com.tgirard12.cqrssimple.stub.BCommand" to handlers[1],
+                    "com.tgirard12.cqrssimple.stub.CCommand" to handlers[2]
                 )
             }
             "dispatch ACommand" {
-                commandBus.dispatch(ACommand()) shouldEqual "ACommandHandler"
+                commandBus.dispatch(ACommand()) shouldBe "ACommandHandler"
             }
             "dispatch BCommand" {
-                commandBus.dispatch(BCommand()) shouldEqual 1234
+                commandBus.dispatch(BCommand()) shouldBe 1234
             }
             "dispatch CCommand" {
-                commandBus.dispatch(CCommand()) shouldEqual "CCommandHandler"
+                commandBus.dispatch(CCommand()) shouldBe "CCommandHandler"
             }
             "fail no CommandHandler" {
                 shouldThrow<IllegalArgumentException> {

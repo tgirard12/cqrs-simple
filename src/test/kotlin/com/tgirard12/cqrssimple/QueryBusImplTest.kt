@@ -1,15 +1,11 @@
 package com.tgirard12.cqrssimple
 
 import com.tgirard12.cqrssimple.stub.*
-import io.kotlintest.KTestJUnitRunner
-import io.kotlintest.matchers.shouldEqual
-import io.kotlintest.matchers.shouldThrow
+import io.kotlintest.shouldBe
+import io.kotlintest.shouldThrow
 import io.kotlintest.specs.WordSpec
-import org.junit.runner.RunWith
 
 
-@Suppress("UNCHECKED_CAST")
-@RunWith(KTestJUnitRunner::class)
 class QueryBusImplTest : WordSpec() {
 
     private val handlers = listOf(
@@ -17,27 +13,29 @@ class QueryBusImplTest : WordSpec() {
             BQueryHandler(),
             cQueryHandler
     )
+
+    @Suppress("UNCHECKED_CAST")
     private val queryBus = QueryBusImpl(handlers as List<QueryHandler<Query<Any>, Any>>)
 
-    override val oneInstancePerTest: Boolean = true
+    override fun isInstancePerTest() = true
 
     init {
         "QueryBusImplTest" should {
             "handlers map" {
-                queryBus.handlers shouldEqual hashMapOf(
+                queryBus.handlers shouldBe hashMapOf(
                         "com.tgirard12.cqrssimple.stub.AQuery" to handlers[0],
                         "com.tgirard12.cqrssimple.stub.BQuery" to handlers[1],
                         "com.tgirard12.cqrssimple.stub.CQuery" to handlers[2]
                 )
             }
             "dispatch Aquery" {
-                queryBus.dispatch(AQuery()) shouldEqual "AQueryHandler"
+                queryBus.dispatch(AQuery()) shouldBe "AQueryHandler"
             }
             "dispatch Bquery" {
-                queryBus.dispatch(BQuery()) shouldEqual 3456
+                queryBus.dispatch(BQuery()) shouldBe 3456
             }
             "dispatch Cquery" {
-                queryBus.dispatch(CQuery()) shouldEqual "BQueryHandler"
+                queryBus.dispatch(CQuery()) shouldBe "BQueryHandler"
             }
             "fail no QueryHandler" {
                 shouldThrow<IllegalArgumentException> {

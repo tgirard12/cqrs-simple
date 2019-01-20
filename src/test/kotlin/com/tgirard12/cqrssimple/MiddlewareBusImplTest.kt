@@ -1,12 +1,11 @@
 package com.tgirard12.cqrssimple
 
 import com.tgirard12.cqrssimple.stub.*
-import io.kotlintest.TestCaseContext
-import io.kotlintest.matchers.shouldEqual
+import io.kotlintest.Description
+import io.kotlintest.shouldBe
 import io.kotlintest.specs.WordSpec
 
 
-@Suppress("UNCHECKED_CAST")
 class MiddlewareBusImplTest : WordSpec() {
 
     private val handlers = listOf(
@@ -16,19 +15,19 @@ class MiddlewareBusImplTest : WordSpec() {
             cMiddlewareHandler2
     )
 
+    @Suppress("UNCHECKED_CAST")
     private val middlewareBus = MiddlewareBusImpl(handlers as List<MiddlewareHandler<Middleware>>)
 
-    override val oneInstancePerTest: Boolean = true
+    override fun isInstancePerTest(): Boolean = true
 
-    override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
+    override fun beforeTest(description: Description) {
         MiddlewareCount.reset()
-        test()
     }
 
     init {
         "QueryBusImplTest" should {
             "handlers map" {
-                middlewareBus.handlers shouldEqual hashMapOf(
+                middlewareBus.handlers shouldBe hashMapOf(
                         "com.tgirard12.cqrssimple.stub.AMiddleware" to listOf(handlers[0]),
                         "com.tgirard12.cqrssimple.stub.BMiddleware" to listOf(handlers[1]),
                         "com.tgirard12.cqrssimple.stub.CMiddleware" to listOf(handlers[2], handlers[3])
@@ -36,31 +35,31 @@ class MiddlewareBusImplTest : WordSpec() {
             }
             "dispatch AMiddleware" {
                 middlewareBus.dispatch(AMiddleware())
-                MiddlewareCount.aCount shouldEqual "a1"
-                MiddlewareCount.bCount shouldEqual "b"
-                MiddlewareCount.cCount shouldEqual "c"
-                MiddlewareCount.dCount shouldEqual "d"
+                MiddlewareCount.aCount shouldBe "a1"
+                MiddlewareCount.bCount shouldBe "b"
+                MiddlewareCount.cCount shouldBe "c"
+                MiddlewareCount.dCount shouldBe "d"
             }
             "dispatch BMiddleware" {
                 middlewareBus.dispatch(BMiddleware())
-                MiddlewareCount.aCount shouldEqual "a"
-                MiddlewareCount.bCount shouldEqual "b2"
-                MiddlewareCount.cCount shouldEqual "c"
-                MiddlewareCount.dCount shouldEqual "d"
+                MiddlewareCount.aCount shouldBe "a"
+                MiddlewareCount.bCount shouldBe "b2"
+                MiddlewareCount.cCount shouldBe "c"
+                MiddlewareCount.dCount shouldBe "d"
             }
             "dispatch CMiddleware-> 2 events" {
                 middlewareBus.dispatch(CMiddleware())
-                MiddlewareCount.aCount shouldEqual "a"
-                MiddlewareCount.bCount shouldEqual "b"
-                MiddlewareCount.cCount shouldEqual "c34"
-                MiddlewareCount.dCount shouldEqual "d"
+                MiddlewareCount.aCount shouldBe "a"
+                MiddlewareCount.bCount shouldBe "b"
+                MiddlewareCount.cCount shouldBe "c34"
+                MiddlewareCount.dCount shouldBe "d"
             }
             "fail no MiddlewareHandler" {
                 middlewareBus.dispatch(DMiddleware())
-                MiddlewareCount.aCount shouldEqual "a"
-                MiddlewareCount.bCount shouldEqual "b"
-                MiddlewareCount.cCount shouldEqual "c"
-                MiddlewareCount.dCount shouldEqual "d"
+                MiddlewareCount.aCount shouldBe "a"
+                MiddlewareCount.bCount shouldBe "b"
+                MiddlewareCount.cCount shouldBe "c"
+                MiddlewareCount.dCount shouldBe "d"
             }
         }
     }
