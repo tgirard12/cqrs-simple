@@ -4,8 +4,8 @@ import com.tgirard12.cqrssimple.stub.AAgrega
 import com.tgirard12.cqrssimple.stub.AAgregaEvent.UpdateEmailEvent
 import com.tgirard12.cqrssimple.stub.AAgregaEvent.UpdateNameEvent
 import com.tgirard12.cqrssimple.stub.AAgregaHandler
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.WordSpec
+import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.shouldBe
 
 /**
  *
