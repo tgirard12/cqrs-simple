@@ -1,58 +1,48 @@
 package com.tgirard12.cqrssimple
 
 import com.tgirard12.cqrssimple.stub.*
-import io.kotlintest.Description
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.WordSpec
+import io.kotest.core.spec.style.WordSpec
+import io.kotest.core.test.TestCase
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 
 
 class EventBusImplTest : WordSpec() {
 
-    private val handlers = listOf(
-            AEventHandler(),
-            BEventHandler(),
-            cEventHandler,
-            cEventHandler2
-    )
-
     @Suppress("UNCHECKED_CAST")
-    private val eventBus = EventBusImpl(handlers as List<EventHandler<Event>>)
+    lateinit var eventBus : EventBusImpl
 
-    override fun isInstancePerTest() = true
-
-    override fun beforeTest(description: Description) {
+    override fun beforeEach(testCase: TestCase) {
         EventCount.reset()
+        eventBus = EventBusImpl().apply {
+            register(AEventHandler())
+            register(BEventHandler())
+            register(cEventHandler)
+            register(cEventHandler2)
+        }
     }
 
     init {
         "QueryBusImplTest" should {
             "handlers map" {
-                eventBus.handlers shouldBe hashMapOf(
-                    "com.tgirard12.cqrssimple.stub.AEvent" to listOf(handlers[0]),
-                    "com.tgirard12.cqrssimple.stub.BEvent" to listOf(handlers[1]),
-                    "com.tgirard12.cqrssimple.stub.CEvent" to listOf(handlers[2], handlers[3])
+                eventBus.handlers.keys shouldBe setOf(
+                    "com.tgirard12.cqrssimple.stub.AEvent",
+                    "com.tgirard12.cqrssimple.stub.BEvent",
+                    "com.tgirard12.cqrssimple.stub.CEvent"
                 )
+                eventBus.handlers["com.tgirard12.cqrssimple.stub.CEvent"]!! shouldHaveSize  2
             }
             "dispatch AEvent" {
                 eventBus.dispatch(AEvent())
-                EventCount.aCount shouldBe "a1"
-                EventCount.bCount shouldBe "b"
-                EventCount.cCount shouldBe "c"
-                EventCount.dCount shouldBe "d"
+                EventCount.sequence shouldBe "a1"
             }
             "dispatch BEvent" {
                 eventBus.dispatch(BEvent())
-                EventCount.aCount shouldBe "a"
-                EventCount.bCount shouldBe "b2"
-                EventCount.cCount shouldBe "c"
-                EventCount.dCount shouldBe "d"
+                EventCount.sequence shouldBe "b2"
             }
             "dispatch CEvent -> 2 events" {
                 eventBus.dispatch(CEvent())
-                EventCount.aCount shouldBe "a"
-                EventCount.bCount shouldBe "b"
-                EventCount.cCount shouldBe "c34"
-                EventCount.dCount shouldBe "d"
+                EventCount.sequence shouldBe "c3C4"
             }
             "nothing on no EventHandler" {
                 eventBus.dispatch(DEvent())
