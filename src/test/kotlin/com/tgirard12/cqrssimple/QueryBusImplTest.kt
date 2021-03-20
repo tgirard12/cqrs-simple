@@ -1,32 +1,35 @@
 package com.tgirard12.cqrssimple
 
 import com.tgirard12.cqrssimple.stub.*
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldThrow
-import io.kotlintest.specs.WordSpec
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.WordSpec
+import io.kotest.core.test.TestCase
+import io.kotest.matchers.shouldBe
 
 
 class QueryBusImplTest : WordSpec() {
 
-    private val handlers = listOf(
-            AQueryHandler(),
-            BQueryHandler(),
-            cQueryHandler
-    )
+    private lateinit var queryBus: QueryBusImpl
 
-    @Suppress("UNCHECKED_CAST")
-    private val queryBus = QueryBusImpl(handlers as List<QueryHandler<Query<Any>, Any>>)
-
-    override fun isInstancePerTest() = true
+    override fun beforeEach(testCase: TestCase) {
+        queryBus = QueryBusImpl().apply {
+            register(AQueryHandler())
+            register(BQueryHandler)
+            register(cQueryHandler)
+        }
+    }
 
     init {
         "QueryBusImplTest" should {
             "handlers map" {
-                queryBus.handlers shouldBe hashMapOf(
-                        "com.tgirard12.cqrssimple.stub.AQuery" to handlers[0],
-                        "com.tgirard12.cqrssimple.stub.BQuery" to handlers[1],
-                        "com.tgirard12.cqrssimple.stub.CQuery" to handlers[2]
+                queryBus.handlers.keys shouldBe listOf(
+                    "com.tgirard12.cqrssimple.stub.AQuery",
+                    "com.tgirard12.cqrssimple.stub.BQuery",
+                    "com.tgirard12.cqrssimple.stub.CQuery",
                 )
+            }
+            "failed if registed twice" {
+                shouldThrow<IllegalArgumentException> { queryBus.register(cQueryHandler2) }
             }
             "dispatch Aquery" {
                 queryBus.dispatch(AQuery()) shouldBe "AQueryHandler"
@@ -35,7 +38,7 @@ class QueryBusImplTest : WordSpec() {
                 queryBus.dispatch(BQuery()) shouldBe 3456
             }
             "dispatch Cquery" {
-                queryBus.dispatch(CQuery()) shouldBe "BQueryHandler"
+                queryBus.dispatch(CQuery()) shouldBe "CQueryHandler"
             }
             "fail no QueryHandler" {
                 shouldThrow<IllegalArgumentException> {

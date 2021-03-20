@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory.getLogger
  * Query to dispatch
  */
 @Suppress("unused")
-interface Query<R> : DescName
+interface Query<R> : Clazz
 
 /**
  *
@@ -21,50 +21,36 @@ interface QueryBus {
  *
  */
 @Suppress("AddVarianceModifier")
-interface QueryHandler<Q : Query<R>, R> : DescName {
+fun interface QueryHandler<Q : Query<R>, R> : Clazz {
     fun handle(query: Q): R
 }
 
-/**
- *
- */
-open class QueryHandlerBase<Q : Query<R>, R>(
-        private val handleFun: ((Q) -> R)? = null
-) : QueryHandler<Q, R> {
-
-    override fun handle(query: Q): R = handleFun?.invoke(query)
-            ?: throw IllegalArgumentException("handle Must be override or set via constructor")
-
-//    Not working du to type erasure
-//    fun invoke(f: (((Q) -> R)?)): QueryHandlerBase<Q, R> =
-//            object : QueryHandlerBase<Q, R>(f) {}
-}
 
 /**
  *
  */
-class QueryBusImpl(
-        handlerList: List<QueryHandler<Query<Any>, Any>>
-) : QueryBus {
+class QueryBusImpl : QueryBus {
 
-    private val log = getLogger("QueryBus")
+    private val logger = getLogger(QueryBusImpl::class.java)
 
-    internal val handlers = handlerList.map {
-        it.javaClass.kotlin.supertypes[0].arguments[0].type.toString() to it
-    }.toMap()
+    internal val handlers = mutableMapOf<String, (Query<*>) -> Any>()
+
+    @Suppress("UNCHECKED_CAST")
+    fun <Q : Query<R>, R> register(handler: QueryHandler<Q, R>, className: String) {
+        if (handlers.containsKey(className))
+            throw java.lang.IllegalArgumentException("Query '$className' have already an Handler")
+        else
+            handlers[className] = { handler.handle(it as Q) as Any }
+    }
+    inline fun <reified Q : Query<R>, R> register(handler: QueryHandler<Q, R>) =
+        register(handler, Q::class.java.clazzFullName)
 
     @Suppress("UNCHECKED_CAST")
     override fun <R> dispatch(query: Query<R>): R {
-        val queryClass = query::class.qualifiedName
-                ?: throw  IllegalArgumentException("Query ${query::class} ::class.qualifiedName NULL")
-        val handler = handlers[queryClass]
-                ?: throw  IllegalArgumentException("QueryHandler ${query::class} NULL")
+        val handler = handlers[query.clazzFullName]
+                ?: throw  IllegalArgumentException("Query ${query.clazzFullName} have no QueryHandler")
 
-        log.debug("${handler.name} > ${query.name}")
-        return handler.handle(query as Query<Any>) as R
+        logger.debug("Invoke query ${query.clazzFullName}")
+        return handler.invoke(query as Query<Any>) as R
     }
 }
-
-// Not work
-//fun <Q : Query, R> queryHandler(f: (Q) -> R) =
-//        object : QueryHandler<Q, R>(f) {}
