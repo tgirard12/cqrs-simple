@@ -14,49 +14,57 @@ interface Cqrs {
     fun event(event: Event)
 }
 
-interface DescName {
-    val name: String? get() = this::class.simpleName
+interface Clazz {
+    val label: String
+        get() = javaClass.simpleName
+    val clazzFullName: String
+        get() = javaClass.name
 }
 
+val Class<*>.clazzFullName: String
+    get() = name
+val Class<*>.label: String
+    get() = simpleName
+
 class CqrsImpl(
-        override val queryBus: QueryBus,
-        override val commandBus: CommandBus,
-        override val eventBus: EventBus,
-        override val middlewareBus: MiddlewareBus
+    override val queryBus: QueryBus,
+    override val commandBus: CommandBus,
+    override val eventBus: EventBus,
+    override val middlewareBus: MiddlewareBus
 ) : Cqrs {
 
     val log = getLogger("cqrs")
 
     override fun <R> command(command: Command<R>): R {
-        log.debug("dispatch command > ${command.name}")
+        log.debug("dispatch command > ${command.clazzFullName}")
 
         if (command is PreActionMiddleware)
-            middlewareBus.dispatch(command)
+            middlewareBus.dispatchPreAction(command)
 
         val comVal = commandBus.dispatch(command)
 
         if (command is PostActionMiddleware)
-            middlewareBus.dispatch(command)
+            middlewareBus.dispatchPostAction(command)
 
         return comVal
     }
 
     override fun <R> query(query: Query<R>): R {
-        log.debug("dispatch query > ${query.name}")
+        log.debug("dispatch query > ${query.clazzFullName}")
 
         if (query is PreActionMiddleware)
-            middlewareBus.dispatch(query)
+            middlewareBus.dispatchPreAction(query)
 
         val comVal = queryBus.dispatch(query)
 
         if (query is PostActionMiddleware)
-            middlewareBus.dispatch(query)
+            middlewareBus.dispatchPostAction(query)
 
         return comVal
     }
 
     override fun event(event: Event) {
-        log.debug("dispatch event > ${event.name}")
+        log.debug("dispatch event > ${event.clazzFullName}")
         eventBus.dispatch(event)
     }
 }
