@@ -1,74 +1,90 @@
 package com.tgirard12.cqrssimple
 
 import org.slf4j.LoggerFactory.getLogger
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  *
  */
-interface Middleware : DescName
+interface MiddlewareAction : Clazz
 
 /**
  *
  */
-interface PreActionMiddleware : Middleware
+interface PreActionMiddleware : MiddlewareAction
 
 /**
  *
  */
-interface PostActionMiddleware : Middleware
+interface PostActionMiddleware : MiddlewareAction
 
 /**
  *
  */
 interface MiddlewareBus {
-    fun dispatch(middleware: Middleware): Unit
+    fun dispatchPreAction(preAction: PreActionMiddleware): Unit
+    fun dispatchPostAction(postAction: PostActionMiddleware): Unit
 }
 
 /**
  *
  */
 @Suppress("AddVarianceModifier")
-interface MiddlewareHandler<M : Middleware> : DescName {
+fun interface MiddlewareHandler<M : MiddlewareAction> : Clazz {
     fun handle(middleware: M): Unit
 }
 
 /**
  *
  */
-open class MiddlewareHandlerBase<M : Middleware>(
-        private val handleFun: ((M) -> Unit)? = null
-) : MiddlewareHandler<M> {
-    override fun handle(middleware: M) = handleFun?.invoke(middleware)
-            ?: throw IllegalArgumentException("handle Must be override or set via constructor")
-}
+class MiddlewareBusImpl : MiddlewareBus {
 
-/**
- *
- */
-class MiddlewareBusImpl(
-        handlerList: List<MiddlewareHandler<Middleware>>
-) : MiddlewareBus {
+    val logger = getLogger("MiddlewareBus")
+    internal val preHandlers = mutableMapOf<KClass<*>, (PreActionMiddleware) -> Unit>()
+    internal val postHandlers = mutableMapOf<KClass<*>, (PostActionMiddleware) -> Unit>()
 
-    val log = getLogger("MiddlewareBus")
+    @Suppress("UNCHECKED_CAST")
+    fun <M : MiddlewareAction> register(handler: MiddlewareHandler<M>, kClass: KClass<*>) {
+        if (kClass.isSubclassOf(PreActionMiddleware::class)) {
+            if (preHandlers.containsKey(kClass))
+                throw java.lang.IllegalArgumentException("Middleware '$kClass' have already register")
+            else
+                preHandlers[kClass] = { handler.handle(it as M) }
+        }
+        if (kClass.isSubclassOf(PostActionMiddleware::class)) {
+            if (postHandlers.containsKey(kClass))
+                throw java.lang.IllegalArgumentException("Middleware '$kClass' have already register")
+            else
+                postHandlers[kClass] = { handler.handle(it as M) }
+        }
+    }
 
-    internal val handlers = handlerList
-            .map {
-                it.javaClass.kotlin.supertypes[0].arguments[0].type.toString() to it
-            }
-            .groupBy({ it.first }, { it.second })
+    inline fun <reified M : MiddlewareAction> register(handler: MiddlewareHandler<M>) =
+        register(handler, M::class)
 
-    override fun dispatch(middleware: Middleware) {
-        val middlewareClass = middleware::class.qualifiedName
-                ?: throw  IllegalArgumentException("Middleware ${middleware::class} ::class.qualifiedName NULL")
-        handlers[middlewareClass]
-                ?.let {
-                    it.forEach {
-                        log.debug("${it.name} > ${middleware.name}")
-                        it.handle(middleware)
+
+    override fun dispatchPreAction(preAction: PreActionMiddleware) {
+        preAction::class.supertypes
+            .forEach { type ->
+                preHandlers[type.jvmErasure]
+                    ?.let {
+                        logger.debug("invoke middleware for ${preAction.clazzFullName}")
+                        it.invoke(preAction)
                     }
-                }
-                ?: log.info("No handler for '${middleware.name}' Middleware")
+            }
+    }
 
+    override fun dispatchPostAction(postAction: PostActionMiddleware) {
+        postAction::class.supertypes
+            .forEach { type ->
+                postHandlers[type.jvmErasure]
+                    ?.let {
+                        logger.debug("invoke middleware for ${postAction.clazzFullName}")
+                        it.invoke(postAction)
+                    }
+            }
     }
 }
 

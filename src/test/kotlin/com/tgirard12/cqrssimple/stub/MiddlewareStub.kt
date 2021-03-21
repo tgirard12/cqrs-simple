@@ -1,58 +1,40 @@
 package com.tgirard12.cqrssimple.stub
 
-import com.tgirard12.cqrssimple.Middleware
-import com.tgirard12.cqrssimple.MiddlewareBus
-import com.tgirard12.cqrssimple.MiddlewareHandlerBase
+import com.tgirard12.cqrssimple.MiddlewareHandler
+import com.tgirard12.cqrssimple.PostActionMiddleware
+import com.tgirard12.cqrssimple.PreActionMiddleware
 
 
-class AMiddleware : Middleware
-class BMiddleware : Middleware
-class CMiddleware : Middleware
-class DMiddleware : Middleware
+interface AMiddleware : PreActionMiddleware
+interface BMiddleware : PostActionMiddleware
+interface CMiddleware : PreActionMiddleware
+interface DMiddleware : PostActionMiddleware
+interface EMiddleware : PostActionMiddleware
 
 object MiddlewareCount {
+    lateinit var sequence: String
+
+    fun add(id: String) {
+        sequence += id
+    }
+
     fun reset() {
-        aCount = "a"
-        bCount = "b"
-        cCount = "c"
-        dCount = "d"
+        sequence = ""
     }
-
-    lateinit var aCount: String
-    lateinit var bCount: String
-    lateinit var cCount: String
-    lateinit var dCount: String
 }
 
-class AMiddlewareHandler : MiddlewareHandlerBase<AMiddleware>() {
+class AMiddlewareHandler : MiddlewareHandler<AMiddleware> {
     override fun handle(middleware: AMiddleware): Unit {
-        MiddlewareCount.aCount += "1"
+        MiddlewareCount.add("a1")
     }
 }
 
-class BMiddlewareHandler : MiddlewareHandlerBase<BMiddleware>({
-    MiddlewareCount.bCount += "2"
-})
-
-val cMiddlewareHandler = object : MiddlewareHandlerBase<CMiddleware>({
-    MiddlewareCount.cCount += "3"
-}) {}
-val cMiddlewareHandler2 = object : MiddlewareHandlerBase<CMiddleware>({
-    MiddlewareCount.cCount += "4"
-}) {}
-
-@Suppress("MemberVisibilityCanBePrivate", "PropertyName")
-class MiddlewareBusStub : MiddlewareBus, MockStub {
-
-    override val mockFun: MutableList<String> = mutableListOf()
-    override val mockData: MutableList<Any> = mutableListOf()
-    override val mockTime: MutableList<Long> = mutableListOf()
-
-    var _dispatch = { Unit }
-    override fun dispatch(middleware: Middleware) {
-        mockFun.add("dispatch")
-        mockData.add(listOf(middleware))
-        mockTime.add(System.nanoTime())
-        return _dispatch()
+object BMiddlewareHandler : MiddlewareHandler<BMiddleware> {
+    override fun handle(middleware: BMiddleware) {
+        MiddlewareCount.add("b2")
     }
 }
+
+val cMiddlewareHandler = MiddlewareHandler<CMiddleware> { MiddlewareCount.add("c") }
+val cMiddlewareHandler2 = MiddlewareHandler<CMiddleware> { MiddlewareCount.add("C4") }
+val dMiddlewareHandler = MiddlewareHandler<DMiddleware> { MiddlewareCount.add("d5") }
