@@ -9,8 +9,8 @@ interface Cqrs {
     val eventBus: EventBus
     val middlewareBus: MiddlewareBus
 
-    fun <R> command(command: Command<R>): Any?
-    fun <R> query(query: Query<R>): R?
+    fun <R> command(command: Command<R>): R
+    fun <R> query(query: Query<R>): R
     fun event(event: Event)
 }
 

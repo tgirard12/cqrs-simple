@@ -27,17 +27,6 @@ fun interface CommandHandler<C : Command<R>, R> : Clazz {
 /**
  *
  */
-//open class CommandHandlerBase<C : Command<R>, R>(
-//        private val handleFun: ((C) -> R)? = null
-//) : CommandHandler<C, R> {
-//
-//    override fun handle(command: C): R = handleFun?.invoke(command)
-//            ?: throw IllegalArgumentException("handle Must be override or set via constructor")
-//}
-
-/**
- *
- */
 class CommandBusImpl : CommandBus {
 
     private val logger = getLogger(CommandBusImpl::class.java)
