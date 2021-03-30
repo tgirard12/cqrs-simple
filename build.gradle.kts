@@ -4,8 +4,8 @@ val project_group: String by extra
 val project_version: String by extra
 
 plugins {
-    kotlin("jvm") version "1.4.31"
-    id("java-library")
+    kotlin("jvm") version "1.4.31" apply false
+    kotlin("plugin.spring") version "1.4.31" apply false
 }
 
 allprojects {
